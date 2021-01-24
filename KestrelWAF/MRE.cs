@@ -18,9 +18,6 @@ namespace MicroRuleEngine
         private static readonly Lazy<MethodInfo> _miRegexIsMatch = new Lazy<MethodInfo>(() =>
             typeof(Regex).GetMethod("IsMatch", new[] { typeof(string), typeof(string), typeof(RegexOptions) }));
 
-        private static readonly Lazy<MethodInfo> _miGetItem = new Lazy<MethodInfo>(() =>
-            typeof(System.Data.DataRow).GetMethod("get_Item", new Type[] { typeof(string) }));
-
         private static readonly Lazy<MethodInfo> _miListContains = new Lazy<MethodInfo>(() =>
             typeof(IList).GetMethod("Contains", new[] { typeof(object) }));
 
@@ -200,38 +197,6 @@ namespace MicroRuleEngine
             return propExpression;
         }
 
-        private static Expression BuildEnumerableOperatorExpression(Type type, Rule rule,
-            ParameterExpression parameterExpression)
-        {
-            var collectionPropertyExpression = BuildExpr(type, rule, parameterExpression);
-
-            var itemType = GetCollectionItemType(collectionPropertyExpression.Type);
-            var expressionParameter = Expression.Parameter(itemType);
-
-
-            var genericFunc = typeof(Func<,>).MakeGenericType(itemType, typeof(bool));
-
-            var innerExp = BuildNestedExpression(itemType, rule.Rules, expressionParameter, ExpressionType.And);
-            var predicate = Expression.Lambda(genericFunc, innerExp, expressionParameter);
-
-            var body = Expression.Call(typeof(Enumerable), rule.Operator, new[] { itemType },
-                collectionPropertyExpression, predicate);
-
-            return body;
-        }
-
-        private static Type GetCollectionItemType(Type collectionType)
-        {
-            if (collectionType.IsArray)
-                return collectionType.GetElementType();
-
-            if ((collectionType.GetInterface("IEnumerable") != null))
-                return collectionType.GetGenericArguments()[0];
-
-            return typeof(object);
-        }
-
-
         private static MethodInfo IsEnumerableOperator(string oprator)
         {
             return (from tup in _enumrMethodsByName
@@ -248,18 +213,10 @@ namespace MicroRuleEngine
             {
                 param = Expression.TypeAs(param, type);
             }
-            var drule = rule as DataRule;
 
             if (string.IsNullOrEmpty(rule.MemberName)) //check is against the object itself
             {
                 propExpression = param;
-                propType = propExpression.Type;
-            }
-            else if (drule != null)
-            {
-                if (type != typeof(System.Data.DataRow))
-                    throw new RulesException(" Bad rule");
-                propExpression = GetDataRowField(param, drule.MemberName, drule.Type);
                 propType = propExpression.Type;
             }
             else
@@ -395,25 +352,6 @@ namespace MicroRuleEngine
         {
             return typeof(Enumerable).GetMethods(BindingFlags.Static | BindingFlags.Public)
                 .FirstOrDefault(m => m.Name == name && m.GetParameters().Length == numParameter);
-        }
-
-
-        private static Expression GetDataRowField(Expression prm, string member, string typeName)
-        {
-            var expMember = Expression.Call(prm, _miGetItem.Value, Expression.Constant(member, typeof(string)));
-            var type = Type.GetType(typeName);
-            Debug.Assert(type != null);
-
-            if (type.IsClass || typeName.StartsWith("System.Nullable"))
-            {
-                //  equals "return  testValue == DBNull.Value  ? (typeName) null : (typeName) testValue"
-                return Expression.Condition(Expression.Equal(expMember, Expression.Constant(DBNull.Value)),
-                    Expression.Constant(null, type),
-                    Expression.Convert(expMember, type));
-            }
-            else
-                // equals "return (typeName) testValue"
-                return Expression.Convert(expMember, type);
         }
 
         private static Expression StringToExpression(object value, Type propType)
@@ -800,45 +738,6 @@ namespace MicroRuleEngine
             }
 
             return $"{MemberName} {Operator}";
-        }
-    }
-
-    public class DataRule : Rule
-    {
-        public string Type { get; set; }
-
-        public static DataRule Create<T>(string member, mreOperator oper, T target)
-        {
-            return new DataRule
-            {
-                MemberName = member,
-                TargetValue = target,
-                Operator = oper.ToString(),
-                Type = typeof(T).FullName
-            };
-        }
-
-        public static DataRule Create<T>(string member, mreOperator oper, string target)
-        {
-            return new DataRule
-            {
-                MemberName = member,
-                TargetValue = target,
-                Operator = oper.ToString(),
-                Type = typeof(T).FullName
-            };
-        }
-
-
-        public static DataRule Create(string member, mreOperator oper, object target, Type memberType)
-        {
-            return new DataRule
-            {
-                MemberName = member,
-                TargetValue = target,
-                Operator = oper.ToString(),
-                Type = memberType.FullName
-            };
         }
     }
 
