@@ -58,7 +58,7 @@ MaxMind provides free [Geolocation data](https://dev.maxmind.com/geoip/geoip2/ge
 
 ```JSON
 "Configuration": {
-  "GeoLiteFile": "C:\MaxMind\GeoLite2-Country.mmdb"
+  "GeoLiteFile": "C:\\MaxMind\\GeoLite2-Country.mmdb"
 }
 ```
 
