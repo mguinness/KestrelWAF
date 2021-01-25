@@ -20,6 +20,8 @@ This projects uses the [Micro Rule Engine](https://github.com/runxc1/MicroRuleEn
 
 That project [README](https://github.com/runxc1/MicroRuleEngine/blob/master/README.md) covers the different kinds of expressions that can be used, so I'd encourage you to read that beforehand.
 
+The inclusion of a boolean Negate field has been added to that library, allowing the result of a rule to be inverted which provides further versatility.
+
 Rules will then be defined and stored in the appsettings.json file using ASP.NET Core [Configuration](https://docs.microsoft.com/en-us/aspnet/core/fundamentals/configuration/?view=aspnetcore-5.0#bind-hierarchical-configuration-data-using-the-options-pattern) options pattern.
 
 An instance of the WebRequest class is created for each request which exposes fields like URL, IP address, user agent etc. for the rules engine to interact with.
@@ -42,8 +44,9 @@ Below is a example of different rules that can be defined.  In addition rules ma
         "TargetValue": "^(curl|java|python)"
       },
       {
-        "Operator": "NotInSubnet",
-        "Inputs": [ "192.168.10.0", 24 ]
+        "Operator": "InSubnet",
+        "Inputs": [ "192.168.10.0", 24 ],
+        "Negate": true
       }
     ]
   }

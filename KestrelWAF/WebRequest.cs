@@ -78,10 +78,5 @@ namespace KestrelWAF
             var network = new IPNetwork(IPAddress.Parse(ip), mask);
             return network.Contains(_request.HttpContext.Connection.RemoteIpAddress);
         }
-
-        public bool NotInSubnet(string ip, int mask)
-        {
-            return !InSubnet(ip, mask);
-        }
     }
 }

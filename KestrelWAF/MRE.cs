@@ -101,7 +101,12 @@ namespace MicroRuleEngine
                 _nestedOperators.Contains(nestedOperator) && rule.Rules != null && rule.Rules.Any())
                 return BuildNestedExpression(type, rule.Rules, parameterExpression, nestedOperator, useTryCatchForNulls);
             else
-                return BuildExpr(type, rule, parameterExpression, useTryCatchForNulls);
+            {
+                if (rule.Negate)
+                    return Expression.Not(BuildExpr(type, rule, parameterExpression, useTryCatchForNulls));
+                else
+                    return BuildExpr(type, rule, parameterExpression, useTryCatchForNulls);
+            }
         }
 
         protected static Expression BuildNestedExpression(Type type, IEnumerable<Rule> rules, ParameterExpression param,
@@ -645,7 +650,7 @@ namespace MicroRuleEngine
         [DataMember] public object TargetValue { get; set; }
         [DataMember] public IList<Rule> Rules { get; set; }
         [DataMember] public IList<object> Inputs { get; set; }
-
+        [DataMember] public bool Negate { get; set; }
 
         public static Rule operator |(Rule lhs, Rule rhs)
         {
