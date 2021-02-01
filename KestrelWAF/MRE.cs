@@ -99,7 +99,10 @@ namespace MicroRuleEngine
             ExpressionType nestedOperator;
             if (ExpressionType.TryParse(rule.Operator, out nestedOperator) &&
                 _nestedOperators.Contains(nestedOperator) && rule.Rules != null && rule.Rules.Any())
-                return BuildNestedExpression(type, rule.Rules, parameterExpression, nestedOperator, useTryCatchForNulls);
+                if (rule.Negate)
+                    return Expression.Not(BuildNestedExpression(type, rule.Rules, parameterExpression, nestedOperator, useTryCatchForNulls));
+                else
+                    return BuildNestedExpression(type, rule.Rules, parameterExpression, nestedOperator, useTryCatchForNulls);
             else
             {
                 if (rule.Negate)

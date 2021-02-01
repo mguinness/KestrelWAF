@@ -30,6 +30,8 @@ namespace KestrelWAF
             services.AddSingleton(new MaxMindDb(Configuration.GetValue<string>("Configuration:GeoLiteFile")));
 
             services.AddReverseProxy().LoadFromConfig(Configuration.GetSection("ReverseProxy"));
+
+            services.AddMemoryCache();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

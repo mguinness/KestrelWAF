@@ -1,8 +1,10 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Net.Http.Headers;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
@@ -13,11 +15,13 @@ namespace KestrelWAF
     {
         private readonly HttpRequest _request;
         private readonly MaxMindDb _geo;
+        private readonly IMemoryCache _cache;
 
-        public WebRequest(HttpRequest request, MaxMindDb geo)
+        public WebRequest(HttpRequest request, MaxMindDb geo, IMemoryCache cache)
         {
             _request = request;
             _geo = geo;
+            _cache = cache;
         }
 
         public string Method
@@ -77,6 +81,20 @@ namespace KestrelWAF
         {
             var network = new IPNetwork(IPAddress.Parse(ip), mask);
             return network.Contains(_request.HttpContext.Connection.RemoteIpAddress);
+        }
+
+        public bool IpInFile(string path)
+        {
+            var keyname = System.IO.Path.GetFileNameWithoutExtension(path);
+
+            var data = _cache.Get<IEnumerable<string>>(keyname);
+            if (data == null && File.Exists(path))
+            {
+                data = _cache.Set<IEnumerable<string>>(keyname, File.ReadAllLines(path),
+                    new MemoryCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromMinutes(15)));
+            }
+
+            return data?.Contains(RemoteIp, StringComparer.OrdinalIgnoreCase) ?? false;
         }
     }
 }

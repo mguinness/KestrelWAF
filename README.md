@@ -16,7 +16,7 @@ This provides flexibility to the end user to define rules to control inbound web
 
 ## Setup
 
-This projects uses the [Micro Rule Engine](https://github.com/runxc1/MicroRuleEngine) based on [Expression Trees](https://docs.microsoft.com/en-us/dotnet/csharp/expression-trees).
+This project uses the [Micro Rule Engine](https://github.com/runxc1/MicroRuleEngine) based on [Expression Trees](https://docs.microsoft.com/en-us/dotnet/csharp/expression-trees).
 
 That project [README](https://github.com/runxc1/MicroRuleEngine/blob/master/README.md) covers the different kinds of expressions that can be used, so I'd encourage you to read that beforehand.
 
@@ -47,6 +47,10 @@ Below is a example of different rules that can be defined.  In addition rules ma
         "Operator": "InSubnet",
         "Inputs": [ "192.168.10.0", 24 ],
         "Negate": true
+      },
+      {
+        "Operator": "IpInFile",
+        "Inputs": [ "C:\\Temp\\blocklist.txt" ]
       }
     ]
   }
