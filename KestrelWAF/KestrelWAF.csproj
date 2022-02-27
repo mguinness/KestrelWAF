@@ -6,7 +6,7 @@
 
   <ItemGroup>
     <PackageReference Include="MaxMind.Db" Version="3.0.0" />
-    <PackageReference Include="Microsoft.ReverseProxy" Version="1.0.0-preview.8.*" />
+    <PackageReference Include="Yarp.ReverseProxy" Version="1.0.0" />
   </ItemGroup>
 
 </Project>
