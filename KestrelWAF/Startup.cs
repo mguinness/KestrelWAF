@@ -5,10 +5,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace KestrelWAF
 {
@@ -42,7 +38,7 @@ namespace KestrelWAF
                 app.UseDeveloperExceptionPage();
             }
 
-            app.UseMiddleware<BlockMiddleware>();
+            app.UseMiddleware<BlockIpMiddleware>();
 
             app.UseRouting();
 
