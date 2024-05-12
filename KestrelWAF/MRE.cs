@@ -5,17 +5,17 @@ using System.Reflection;
 using System.Runtime.Serialization;
 using System.Text.RegularExpressions;
 
-namespace MicroRuleEngine
+namespace KestrelWAF
 {
     public class MRE
     {
         private static readonly ExpressionType[] _nestedOperators = new ExpressionType[]
             {ExpressionType.And, ExpressionType.AndAlso, ExpressionType.Or, ExpressionType.OrElse};
 
-        private static readonly Lazy<MethodInfo> _miRegexIsMatch = new Lazy<MethodInfo>(() =>
+        private static readonly Lazy<MethodInfo> _miRegexIsMatch = new(() =>
             typeof(Regex).GetMethod("IsMatch", new[] { typeof(string), typeof(string), typeof(RegexOptions) }));
 
-        private static readonly Lazy<MethodInfo> _miListContains = new Lazy<MethodInfo>(() =>
+        private static readonly Lazy<MethodInfo> _miListContains = new(() =>
             typeof(IList).GetMethod("Contains", new[] { typeof(object) }));
 
         private static readonly Tuple<string, Lazy<MethodInfo>>[] _enumrMethodsByName =
@@ -24,16 +24,16 @@ namespace MicroRuleEngine
                 Tuple.Create("Any", new Lazy<MethodInfo>(() => GetLinqMethod("Any", 2))),
                 Tuple.Create("All", new Lazy<MethodInfo>(() => GetLinqMethod("All", 2))),
             };
-        private static readonly Lazy<MethodInfo> _miIntTryParse = new Lazy<MethodInfo>(() =>
+        private static readonly Lazy<MethodInfo> _miIntTryParse = new(() =>
             typeof(Int32).GetMethod("TryParse", new Type[] { typeof(string), Type.GetType("System.Int32&") }));
 
-        private static readonly Lazy<MethodInfo> _miFloatTryParse = new Lazy<MethodInfo>(() =>
+        private static readonly Lazy<MethodInfo> _miFloatTryParse = new(() =>
             typeof(Single).GetMethod("TryParse", new Type[] { typeof(string), Type.GetType("System.Single&") }));
 
-        private static readonly Lazy<MethodInfo> _miDoubleTryParse = new Lazy<MethodInfo>(() =>
+        private static readonly Lazy<MethodInfo> _miDoubleTryParse = new(() =>
             typeof(Double).GetMethod("TryParse", new Type[] { typeof(string), Type.GetType("System.Double&") }));
 
-        private static readonly Lazy<MethodInfo> _miDecimalTryParse = new Lazy<MethodInfo>(() =>
+        private static readonly Lazy<MethodInfo> _miDecimalTryParse = new(() =>
             typeof(Decimal).GetMethod("TryParse", new Type[] { typeof(string), Type.GetType("System.Decimal&") }));
 
         public Func<T, bool> CompileRule<T>(Rule r)
@@ -140,7 +140,7 @@ namespace MicroRuleEngine
         }
 
         private static readonly Regex _regexIndexed =
-	        new Regex(@"(?'Collection'\w+)\[(?:(?'Index'\d+)|(?:['""](?'Key'\w+)[""']))\]", RegexOptions.Compiled);
+	        new(@"(?'Collection'\w+)\[(?:(?'Index'\d+)|(?:['""](?'Key'\w+)[""']))\]", RegexOptions.Compiled);
 
         private static Expression GetProperty(Expression param, string propname)
         {
@@ -316,7 +316,7 @@ namespace MicroRuleEngine
             {
                 var inputs = rule.Inputs.Select(x => x.GetType()).ToArray();
                 var methodInfo = propType.GetMethod(rule.Operator, inputs);
-                List<Expression> expressions = new List<Expression>();
+                List<Expression> expressions = new();
 
                 if (methodInfo == null)
                 {
@@ -394,9 +394,9 @@ namespace MicroRuleEngine
             return Expression.Constant(safevalue, propType);
         }
 
-        private static  readonly Regex reNow = new Regex(@"#NOW([-+])(\d+)([SMHDY])", RegexOptions.IgnoreCase
-                                                                              | RegexOptions.Compiled
-                                                                              | RegexOptions.Singleline);
+        private static  readonly Regex reNow = new(@"#NOW([-+])(\d+)([SMHDY])", RegexOptions.IgnoreCase
+                                                                                | RegexOptions.Compiled
+                                                                                | RegexOptions.Singleline);
 
         private static DateTime? IsTime(string text, Type targetType)
         {
@@ -507,7 +507,7 @@ namespace MicroRuleEngine
             public static BindingFlags flags = BindingFlags.Instance | BindingFlags.Public;
             public static List<Member> GetFields(Type type, string memberName = null, string parentPath = null)
             {
-                List<Member> toReturn = new List<Member>();
+                List<Member> toReturn = new();
                 var fi = new Member
                 {
                     Name = string.IsNullOrEmpty(parentPath) ? memberName : $"{parentPath}.{memberName}",
@@ -591,7 +591,7 @@ namespace MicroRuleEngine
                 };
             public static List<Operator> Operators(Type type, bool addLogicOperators = false, bool noOverloads = true)
             {
-                List<Operator> operators = new List<Operator>();
+                List<Operator> operators = new();
                 if (addLogicOperators)
                 {
                     operators.AddRange(logicOperators.Select(x => new Operator() { Name = x, Type = OperatorType.Logic }));
@@ -716,11 +716,11 @@ namespace MicroRuleEngine
             return new Rule { MemberName = member, Operator = "All", Rules = new List<Rule> { rule } };
         }
 
-        public static Rule IsInteger(string member) => new Rule() { MemberName = member, Operator = "IsInteger" };
-        public static Rule IsFloat(string member) => new Rule() { MemberName = member, Operator = "IsSingle" };
-        public static Rule IsDouble(string member) => new Rule() { MemberName = member, Operator = "IsDouble" };
-        public static Rule IsSingle(string member) => new Rule() { MemberName = member, Operator = "IsSingle" };
-        public static Rule IsDecimal(string member) => new Rule() { MemberName = member, Operator = "IsDecimal" };
+        public static Rule IsInteger(string member) => new() { MemberName = member, Operator = "IsInteger" };
+        public static Rule IsFloat(string member) => new() { MemberName = member, Operator = "IsSingle" };
+        public static Rule IsDouble(string member) => new() { MemberName = member, Operator = "IsDouble" };
+        public static Rule IsSingle(string member) => new() { MemberName = member, Operator = "IsSingle" };
+        public static Rule IsDecimal(string member) => new() { MemberName = member, Operator = "IsDecimal" };
 
 
 
@@ -755,7 +755,7 @@ namespace MicroRuleEngine
     }
 
     // Nothing specific to MRE.  Can be moved to a more common location
-    public static class Extensions
+    public static class IListExtensions
     {
         public static void AddRange<T>(this IList<T> collection, IEnumerable<T> newValues)
         {
